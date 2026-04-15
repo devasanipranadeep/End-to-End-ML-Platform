@@ -563,23 +563,23 @@ def model_recommendation_page():
     st.markdown("---")
     st.markdown("### 🧭 Navigation")
     
-col1, col2, col3 = st.columns([1, 1, 1])
-with col1:
-    if st.button("⬅️ Previous: Problem Detection", type="secondary", key="nav_prev_from_model_recommendation"):
-        st.session_state.explicit_navigation = "🎯 Problem Type Detection"
-        st.rerun()
-    
-with col2:
-    if st.button("💾 Save Progress", type="primary", key="nav_save_model_recommendation"):
-        st.success("✅ Model recommendations saved!")
-        st.info("💡 Your selected models and recommendations have been saved to session.")
-    
-with col3:
-    if st.button("➡️ Next: Model Training", type="primary", key="nav_next_from_model_recommendation"):
-        if 'selected_models' in st.session_state and st.session_state.selected_models:
-            st.session_state.current_phase = "training"
-            st.success("✅ Model recommendation completed! Moving to Model Training...")
-            st.session_state.explicit_navigation = "🚀 Model Training"
+    col1, col2, col3 = st.columns([1, 1, 1])
+    with col1:
+        if st.button("⬅️ Previous: Problem Detection", type="secondary", key="nav_prev_from_model_recommendation"):
+            st.session_state.explicit_navigation = "🎯 Problem Type Detection"
             st.rerun()
-        else:
-            st.error("⚠️ Please select at least one model for training first!")
+    
+    with col2:
+        if st.button("💾 Save Progress", type="primary", key="nav_save_model_recommendation"):
+            st.success("✅ Model recommendations saved!")
+            st.info("💡 Your selected models and recommendations have been saved to session.")
+    
+    with col3:
+        if st.button("➡️ Next: Model Training", type="primary", key="nav_next_from_model_recommendation"):
+            if 'selected_models' in st.session_state and st.session_state.selected_models:
+                st.session_state.current_phase = "training"
+                st.success("✅ Model recommendation completed! Moving to Model Training...")
+                st.session_state.explicit_navigation = "🚀 Model Training"
+                st.rerun()
+            else:
+                st.error("⚠️ Please select at least one model for training first!")
