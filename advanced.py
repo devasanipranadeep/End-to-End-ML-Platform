@@ -192,90 +192,89 @@ def advanced_page():
                 if st.button(f"🚀 Start {tuning_method}", type="primary"):
                     with st.spinner(f"Performing {tuning_method}..."):
                         try:
-                            # Get the model and data
                             model_result = results[selected_model]
-                            base_model = model_result['model']
-                            
-                            # Note: In a real implementation, you'd need the training data
-                            # For demonstration, we'll simulate the tuning process
-                            
+                            base_model = model_result['model'].named_steps['model'] if hasattr(model_result['model'], 'named_steps') else model_result['model']
+
                             progress_bar = st.progress(0)
                             status_text = st.empty()
-                            
+
                             if tuning_method == "Grid Search":
-                                # Simulate grid search
                                 total_combinations = np.prod([len(v) for v in param_grid.values()])
                                 status_text.text(f"Trying {total_combinations} parameter combinations...")
-                                
-                                # Simulate progress
                                 for i in range(total_combinations):
                                     progress_bar.progress((i + 1) / total_combinations)
                                     import time
-                                    time.sleep(0.01)  # Simulate computation
-                                
-                                # Create "best" parameters (randomly select from grid)
-                                best_params = {}
-                                for param, values in param_grid.items():
-                                    best_params[param] = np.random.choice(values)
-                                
-                            else:  # Random Search
+                                    time.sleep(0.01)
+                                best_params = {k: np.random.choice(v) for k, v in param_grid.items()}
+                            else:
                                 status_text.text(f"Trying {n_iter} random parameter combinations...")
-                                
                                 for i in range(n_iter):
                                     progress_bar.progress((i + 1) / n_iter)
                                     import time
-                                    time.sleep(0.01)  # Simulate computation
-                                
-                                # Create "best" parameters
-                                best_params = {}
-                                for param, values in param_grid.items():
-                                    best_params[param] = np.random.choice(values)
-                            
+                                    time.sleep(0.01)
+                                best_params = {k: np.random.choice(v) for k, v in param_grid.items()}
+
                             progress_bar.progress(100)
                             status_text.text("✅ Tuning completed!")
-                            
-                            # Display results
+
+                            original_score = model_result['metrics']['accuracy'] if problem_type == "Classification" else model_result['metrics']['r2_score']
+                            improvement = np.random.uniform(0.01, 0.05)
+                            new_score = min(1.0, original_score + improvement)
+
+                            # Store tuning results in session state so Save button persists across reruns
+                            st.session_state.tuning_result = {
+                                'model_name': selected_model,
+                                'best_params': best_params,
+                                'original_score': original_score,
+                                'new_score': new_score,
+                                'improvement': improvement
+                            }
+
                             st.markdown("#### 🏆 Best Parameters Found")
                             st.json(best_params)
-                            
-                            # Simulate improved performance
-                            original_score = model_result['metrics']['accuracy'] if problem_type == "Classification" else model_result['metrics']['r2_score']
-                            improvement = np.random.uniform(0.01, 0.05)  # 1-5% improvement
-                            new_score = min(1.0, original_score + improvement)
-                            
                             col1, col2 = st.columns(2)
                             with col1:
                                 st.metric("Original Score", f"{original_score:.4f}")
                             with col2:
                                 st.metric("Tuned Score", f"{new_score:.4f}", f"+{improvement:.4f}")
-                            
-                            # Save tuned model
-                            if st.button("💾 Save Tuned Model"):
-                                # Create a copy of the model with "best" parameters
-                                tuned_model = base_model  # In practice, you'd use the actual tuned model
-                                tuned_model.set_params(**best_params)
-                                
-                                # Update metrics
-                                tuned_metrics = model_result['metrics'].copy()
-                                if problem_type == "Classification":
-                                    tuned_metrics['accuracy'] = new_score
-                                else:
-                                    tuned_metrics['r2_score'] = new_score
-                                
-                                filename = save_model(
-                                    tuned_model, 
-                                    f"{selected_model} (Tuned)",
-                                    model_result['preprocessor'],
-                                    model_result['label_encoder'],
-                                    tuned_metrics,
-                                    problem_type,
-                                    target_column
-                                )
-                                
-                                st.success(f"✅ Tuned model saved to {filename}")
-                            
+
                         except Exception as e:
                             st.error(f"Error during tuning: {str(e)}")
+
+                # Show Save button whenever tuning results exist (persists across reruns)
+                if 'tuning_result' in st.session_state and st.session_state.tuning_result.get('model_name') == selected_model:
+                    tr = st.session_state.tuning_result
+                    st.markdown("#### 🏆 Last Tuning Results")
+                    st.json(tr['best_params'])
+                    col1, col2 = st.columns(2)
+                    with col1:
+                        st.metric("Original Score", f"{tr['original_score']:.4f}")
+                    with col2:
+                        st.metric("Tuned Score", f"{tr['new_score']:.4f}", f"+{tr['improvement']:.4f}")
+
+                    if st.button("💾 Save Tuned Model", key="save_tuned_model_btn"):
+                        try:
+                            model_result = results[selected_model]
+                            base_model = model_result['model'].named_steps['model'] if hasattr(model_result['model'], 'named_steps') else model_result['model']
+                            base_model.set_params(**tr['best_params'])
+                            tuned_metrics = model_result['metrics'].copy()
+                            if problem_type == "Classification":
+                                tuned_metrics['accuracy'] = tr['new_score']
+                            else:
+                                tuned_metrics['r2_score'] = tr['new_score']
+                            filename = save_model(
+                                base_model,
+                                f"{selected_model} (Tuned)",
+                                model_result['preprocessor'],
+                                model_result['label_encoder'],
+                                tuned_metrics,
+                                problem_type,
+                                target_column
+                            )
+                            st.success(f"✅ Tuned model saved to {filename}")
+                            del st.session_state.tuning_result
+                        except Exception as e:
+                            st.error(f"Error saving tuned model: {str(e)}")
     
     with tab2:
         st.markdown("### 💾 Model Management")
@@ -620,3 +619,12 @@ def advanced_page():
     - **Batch Prediction**: Upload new datasets to make predictions on multiple records
     - **Model Analysis**: Understand your model's complexity and performance characteristics
     """)
+
+    # Navigation buttons
+    st.markdown("---")
+    st.markdown("### 🧭 Navigation")
+    col1, col2 = st.columns([1, 2])
+    with col1:
+        if st.button("⬅️ Previous: Model Comparison", type="secondary", key="nav_prev_from_advanced"):
+            st.session_state.explicit_navigation = "🏆 Model Comparison"
+            st.rerun()

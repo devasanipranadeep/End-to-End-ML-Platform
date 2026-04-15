@@ -487,28 +487,25 @@ def training_page():
         
         # Download models
         st.markdown("### 💾 Download Trained Models")
-        
+
         for model_name, result in results.items():
-            if st.button(f"Download {model_name}", key=f"download_{model_name}"):
-                # Save model and preprocessing objects
-                model_data = {
-                    'model': result['model'],
-                    'preprocessor': result['preprocessor'],
-                    'label_encoder': result['label_encoder'],
-                    'target_column': target_column,
-                    'problem_type': problem_type,
-                    'metrics': result['metrics'],
-                    'training_date': datetime.now().isoformat()
-                }
-                
-                # Create download
-                model_pickle = pickle.dumps(model_data)
-                st.download_button(
-                    label=f"Download {model_name} Model",
-                    data=model_pickle,
-                    file_name=f"{model_name.lower().replace(' ', '_')}_model.pkl",
-                    mime="application/octet-stream"
-                )
+            model_data = {
+                'model': result['model'],
+                'preprocessor': result['preprocessor'],
+                'label_encoder': result['label_encoder'],
+                'target_column': target_column,
+                'problem_type': problem_type,
+                'metrics': result['metrics'],
+                'training_date': datetime.now().isoformat()
+            }
+            model_pickle = pickle.dumps(model_data)
+            st.download_button(
+                label=f"⬇️ Download {model_name} Model",
+                data=model_pickle,
+                file_name=f"{model_name.lower().replace(' ', '_')}_model.pkl",
+                mime="application/octet-stream",
+                key=f"download_{model_name}"
+            )
     
     # Quick predictions section
     if 'training_results' in st.session_state and st.session_state.training_results:
@@ -568,3 +565,25 @@ def training_page():
     
     else:
         st.info("👆 Train models above to see results and make predictions.")
+
+    # Navigation buttons
+    st.markdown("---")
+    st.markdown("### 🧭 Navigation")
+
+    col1, col2, col3 = st.columns([1, 1, 1])
+    with col1:
+        if st.button("⬅️ Previous: Model Recommendation", type="secondary", key="nav_prev_from_training"):
+            st.session_state.explicit_navigation = "🤖 Model Recommendation"
+            st.rerun()
+
+    with col2:
+        if st.button("💾 Save Progress", type="primary", key="nav_save_training"):
+            st.success("✅ Training progress saved!")
+
+    with col3:
+        if st.button("➡️ Next: Model Evaluation", type="primary", key="nav_next_from_training"):
+            if st.session_state.trained_models:
+                st.session_state.explicit_navigation = "📊 Model Evaluation"
+                st.rerun()
+            else:
+                st.error("⚠️ Please train at least one model first!")

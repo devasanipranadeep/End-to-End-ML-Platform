@@ -395,43 +395,39 @@ def eda_page():
     
     # Download EDA report
     st.markdown("### 📥 Download EDA Report")
-    
-    if st.button("Generate EDA Summary Report"):
-        # Create a summary report
-        report_lines = []
-        report_lines.append("EXPLORATORY DATA ANALYSIS REPORT")
-        report_lines.append("=" * 50)
-        report_lines.append(f"Generated on: {pd.Timestamp.now()}")
-        report_lines.append("")
-        
-        report_lines.append("DATASET OVERVIEW")
+
+    # Build report content
+    report_lines = []
+    report_lines.append("EXPLORATORY DATA ANALYSIS REPORT")
+    report_lines.append("=" * 50)
+    report_lines.append(f"Generated on: {pd.Timestamp.now()}")
+    report_lines.append("")
+    report_lines.append("DATASET OVERVIEW")
+    report_lines.append("-" * 20)
+    report_lines.append(f"Shape: {summary['shape'][0]} rows, {summary['shape'][1]} columns")
+    report_lines.append(f"Memory Usage: {summary['memory_usage']:.2f} MB")
+    report_lines.append(f"Missing Values: {len(summary['missing_values'])}")
+    report_lines.append("")
+    if summary['missing_values']:
+        report_lines.append("MISSING VALUES")
         report_lines.append("-" * 20)
-        report_lines.append(f"Shape: {summary['shape'][0]} rows, {summary['shape'][1]} columns")
-        report_lines.append(f"Memory Usage: {summary['memory_usage']:.2f} MB")
-        report_lines.append(f"Missing Values: {len(summary['missing_values'])}")
+        for col, count in summary['missing_values'].items():
+            pct = summary['missing_percentage'][col]
+            report_lines.append(f"{col}: {count} ({pct}%)")
         report_lines.append("")
-        
-        if summary['missing_values']:
-            report_lines.append("MISSING VALUES")
-            report_lines.append("-" * 20)
-            for col, count in summary['missing_values'].items():
-                pct = summary['missing_percentage'][col]
-                report_lines.append(f"{col}: {count} ({pct}%)")
-            report_lines.append("")
-        
-        report_lines.append("KEY INSIGHTS")
-        report_lines.append("-" * 20)
-        for insight in insights:
-            report_lines.append(insight.replace("📊 ", "").replace("⚠️ ", "").replace("ℹ️ ", "").replace("🔢 ", "").replace("📝 ", "").replace("🎯 ", "").replace("🔗 ", ""))
-        
-        report_text = "\n".join(report_lines)
-        
-        st.download_button(
-            label="Download EDA Report",
-            data=report_text,
-            file_name="eda_report.txt",
-            mime="text/plain"
-        )
+    report_lines.append("KEY INSIGHTS")
+    report_lines.append("-" * 20)
+    for insight in insights:
+        report_lines.append(insight.replace("📊 ", "").replace("⚠️ ", "").replace("ℹ️ ", "").replace("🔢 ", "").replace("📝 ", "").replace("🎯 ", "").replace("🔗 ", ""))
+    report_text = "\n".join(report_lines)
+
+    st.download_button(
+        label="⬇️ Download EDA Report",
+        data=report_text,
+        file_name="eda_report.txt",
+        mime="text/plain",
+        key="download_eda_report"
+    )
     
     # Navigation buttons
     st.markdown("---")

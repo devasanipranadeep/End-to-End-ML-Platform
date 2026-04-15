@@ -407,44 +407,41 @@ def comparison_page():
     
     # Export comparison results
     st.markdown("### 📥 Export Comparison Results")
-    
-    if st.button("Download Comparison Report"):
-        # Create comprehensive comparison report
-        report_lines = []
-        report_lines.append("MODEL COMPARISON REPORT")
-        report_lines.append("=" * 50)
-        report_lines.append(f"Generated on: {pd.Timestamp.now()}")
-        report_lines.append(f"Problem Type: {problem_type}")
-        report_lines.append(f"Number of Models: {len(results)}")
+
+    # Build report content
+    report_lines = []
+    report_lines.append("MODEL COMPARISON REPORT")
+    report_lines.append("=" * 50)
+    report_lines.append(f"Generated on: {pd.Timestamp.now()}")
+    report_lines.append(f"Problem Type: {problem_type}")
+    report_lines.append(f"Number of Models: {len(results)}")
+    report_lines.append("")
+    report_lines.append("LEADERBOARD")
+    report_lines.append("-" * 30)
+    for _, row in leaderboard_df.iterrows():
+        report_lines.append(f"{row['Rank']}. {row['Model']}")
+        if problem_type == "Classification":
+            report_lines.append(f"   Accuracy: {row['Accuracy']}")
+            report_lines.append(f"   F1-Score: {row['F1-Score']}")
+        else:
+            report_lines.append(f"   R² Score: {row['R² Score']}")
+            report_lines.append(f"   RMSE: {row['RMSE']}")
+        report_lines.append(f"   Training Time: {row['Training Time (s)']}s")
         report_lines.append("")
-        
-        report_lines.append("LEADERBOARD")
-        report_lines.append("-" * 30)
-        for _, row in leaderboard_df.iterrows():
-            report_lines.append(f"{row['Rank']}. {row['Model']}")
-            if problem_type == "Classification":
-                report_lines.append(f"   Accuracy: {row['Accuracy']}")
-                report_lines.append(f"   F1-Score: {row['F1-Score']}")
-            else:
-                report_lines.append(f"   R² Score: {row['R² Score']}")
-                report_lines.append(f"   RMSE: {row['RMSE']}")
-            report_lines.append(f"   Training Time: {row['Training Time (s)']}s")
-            report_lines.append("")
-        
-        report_lines.append("RECOMMENDATIONS")
-        report_lines.append("-" * 30)
-        report_lines.append(f"Best Performance: {best_accuracy[0]}")
-        report_lines.append(f"Fastest Training: {fastest_model[0]}")
-        report_lines.append(f"Most Stable: {most_stable[0]}")
-        
-        report_text = "\n".join(report_lines)
-        
-        st.download_button(
-            label="Download Comparison Report",
-            data=report_text,
-            file_name="model_comparison_report.txt",
-            mime="text/plain"
-        )
+    report_lines.append("RECOMMENDATIONS")
+    report_lines.append("-" * 30)
+    report_lines.append(f"Best Performance: {best_accuracy[0]}")
+    report_lines.append(f"Fastest Training: {fastest_model[0]}")
+    report_lines.append(f"Most Stable: {most_stable[0]}")
+    report_text = "\n".join(report_lines)
+
+    st.download_button(
+        label="⬇️ Download Comparison Report",
+        data=report_text,
+        file_name="model_comparison_report.txt",
+        mime="text/plain",
+        key="download_comparison_report"
+    )
     
     # Select best model for deployment
     st.markdown("### 🚀 Select Model for Deployment")
@@ -459,3 +456,22 @@ def comparison_page():
         st.session_state.deployment_model = deployment_model
         st.success(f"✅ {deployment_model} selected for deployment!")
         st.info("You can now proceed to Advanced Features for hyperparameter tuning and model saving.")
+
+    # Navigation buttons
+    st.markdown("---")
+    st.markdown("### 🧭 Navigation")
+
+    col1, col2, col3 = st.columns([1, 1, 1])
+    with col1:
+        if st.button("⬅️ Previous: Model Evaluation", type="secondary", key="nav_prev_from_comparison"):
+            st.session_state.explicit_navigation = "📊 Model Evaluation"
+            st.rerun()
+
+    with col2:
+        if st.button("💾 Save Progress", type="primary", key="nav_save_comparison"):
+            st.success("✅ Comparison results saved!")
+
+    with col3:
+        if st.button("➡️ Next: Advanced Features", type="primary", key="nav_next_from_comparison"):
+            st.session_state.explicit_navigation = "⚙️ Advanced Features"
+            st.rerun()

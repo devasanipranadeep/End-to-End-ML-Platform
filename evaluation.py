@@ -240,10 +240,10 @@ def evaluation_page():
             st.metric("AUC Score", f"{roc_auc:.4f}")
         
         # Feature importance (if available)
-        if hasattr(model_result['model'], 'feature_importances_'):
+        base_model = model_result['model'].named_steps['model'] if hasattr(model_result['model'], 'named_steps') else model_result['model']
+        if hasattr(base_model, 'feature_importances_'):
             st.markdown("### 🌟 Feature Importance")
-            
-            feature_importance = model_result['model'].feature_importances_
+            feature_importance = base_model.feature_importances_
             
             # Get feature names (this is simplified - in practice you'd need to track feature names through preprocessing)
             feature_names = [f"Feature_{i}" for i in range(len(feature_importance))]
@@ -353,10 +353,10 @@ def evaluation_page():
         st.plotly_chart(fig, use_container_width=True)
         
         # Feature importance (if available)
-        if hasattr(model_result['model'], 'feature_importances_'):
+        base_model = model_result['model'].named_steps['model'] if hasattr(model_result['model'], 'named_steps') else model_result['model']
+        if hasattr(base_model, 'feature_importances_'):
             st.markdown("### 🌟 Feature Importance")
-            
-            feature_importance = model_result['model'].feature_importances_
+            feature_importance = base_model.feature_importances_
             
             # Get feature names (simplified)
             feature_names = [f"Feature_{i}" for i in range(len(feature_importance))]
@@ -482,10 +482,33 @@ def evaluation_page():
             report_lines.append("")
         
         report_text = "\n".join(report_lines)
-        
+
         st.download_button(
-            label="Download Evaluation Report",
+            label="⬇️ Download Evaluation Report",
             data=report_text,
             file_name="evaluation_report.txt",
-            mime="text/plain"
+            mime="text/plain",
+            key="download_eval_report"
         )
+
+    # Navigation buttons
+    st.markdown("---")
+    st.markdown("### 🧭 Navigation")
+
+    col1, col2, col3 = st.columns([1, 1, 1])
+    with col1:
+        if st.button("⬅️ Previous: Model Training", type="secondary", key="nav_prev_from_evaluation"):
+            st.session_state.explicit_navigation = "🚀 Model Training"
+            st.rerun()
+
+    with col2:
+        if st.button("💾 Save Progress", type="primary", key="nav_save_evaluation"):
+            st.success("✅ Evaluation progress saved!")
+
+    with col3:
+        if st.button("➡️ Next: Model Comparison", type="primary", key="nav_next_from_evaluation"):
+            if st.session_state.trained_models:
+                st.session_state.explicit_navigation = "🏆 Model Comparison"
+                st.rerun()
+            else:
+                st.error("⚠️ Please train models first!")

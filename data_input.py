@@ -292,14 +292,15 @@ def data_input_page():
                 st.rerun()
         
         with col2:
-            if st.button("Download Current Dataset", type="primary"):
-                csv = st.session_state.data.to_csv(index=False)
-                st.download_button(
-                    label="Download CSV",
-                    data=csv,
-                    file_name="dataset.csv",
-                    mime="text/csv"
-                )
+            csv = st.session_state.data.to_csv(index=False)
+            st.download_button(
+                label="⬇️ Download Current Dataset",
+                data=csv,
+                file_name="dataset.csv",
+                mime="text/csv",
+                type="primary",
+                key="download_current_dataset_btn"
+            )
         
         with col3:
             if st.button("➡️ Next: Preprocessing", type="primary", key="nav_next_preprocessing"):
