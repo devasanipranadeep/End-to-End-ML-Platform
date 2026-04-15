@@ -197,6 +197,10 @@ _page_index = _pages.index(page) if page in _pages else 0
 def _on_sidebar_change():
     st.session_state.current_page = st.session_state.sidebar_page_selectbox
 
+# Keep the selectbox display in sync with current_page (button navigation doesn't
+# update the widget key automatically — only the index param is ignored when key exists)
+st.session_state.sidebar_page_selectbox = page
+
 st.sidebar.selectbox(
     "Select a page",
     _pages,
