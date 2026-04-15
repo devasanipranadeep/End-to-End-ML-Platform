@@ -101,13 +101,28 @@ _pages = [
     "⚙️ Advanced Features"
 ]
 
+# Initialize current page if not set
+if 'current_page' not in st.session_state:
+    st.session_state.current_page = "📊 Data Input"
+
 # Handle explicit navigation (from navigation buttons inside pages)
+# This must run before sidebar to ensure navigation takes precedence
 if 'explicit_navigation' in st.session_state:
     st.session_state.current_page = st.session_state.explicit_navigation
+    # Store navigation target to ensure it persists through the rerun
+    st.session_state.navigation_target = st.session_state.explicit_navigation
     del st.session_state.explicit_navigation
 
+# Use navigation target if available, otherwise use current page
+if 'navigation_target' in st.session_state:
+    current_page = st.session_state.navigation_target
+    # Clear the target after using it
+    del st.session_state.navigation_target
+else:
+    current_page = st.session_state.current_page
+
 # Resolve current page index safely
-_page_index = _pages.index(st.session_state.current_page) if st.session_state.current_page in _pages else 0
+_page_index = _pages.index(current_page) if current_page in _pages else 0
 
 # Sidebar selectbox - bound to session state index so it never resets
 current_selection = st.sidebar.selectbox(
@@ -117,9 +132,11 @@ current_selection = st.sidebar.selectbox(
     key="sidebar_page_selectbox"
 )
 
-# Update current page from sidebar selection
-st.session_state.current_page = current_selection
-page = current_selection
+# Update current page from sidebar selection (only if different from current)
+if current_selection != st.session_state.current_page:
+    st.session_state.current_page = current_selection
+
+page = st.session_state.current_page
 
 # Clear any old navigation targets to prevent conflicts
 if 'navigation_target' in st.session_state:
@@ -222,6 +239,27 @@ for i, (phase_name, phase_key) in enumerate(phases):
 progress = (current_phase_index + 1) / len(phases)
 st.sidebar.progress(progress)
 st.sidebar.write(f"Progress: {progress:.1%}")
+
+# Navigation helper function - can be imported by other modules
+def navigate_to_page(page_name):
+    """Reliably navigate to a specific page - works on Streamlit Cloud"""
+    if page_name in _pages:  # Validate page name
+        st.session_state.current_page = page_name
+        st.session_state.explicit_navigation = page_name
+        st.rerun()
+    else:
+        st.error(f"Invalid page: {page_name}")
+
+# Make navigation function available globally
+def safe_navigate(page_name):
+    """Safe navigation that works across all Streamlit deployments"""
+    try:
+        navigate_to_page(page_name)
+    except Exception as e:
+        st.error(f"Navigation error: {e}")
+        # Fallback navigation
+        st.session_state.current_page = page_name
+        st.rerun()
 
 # Import modules
 from data_input import data_input_page

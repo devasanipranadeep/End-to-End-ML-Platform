@@ -306,7 +306,8 @@ def data_input_page():
                 if st.session_state.data is not None:
                     st.session_state.current_phase = "preprocessing"
                     st.success("✅ Data input completed! Moving to preprocessing...")
-                    # Simulate navigation by updating session state
+                    # Use robust navigation system
+                    st.session_state.current_page = "🔧 Data Preprocessing"
                     st.session_state.explicit_navigation = "🔧 Data Preprocessing"
                     st.rerun()
                 else:
