@@ -20,7 +20,7 @@ def get_dataset_characteristics(df, target_column):
         'n_categorical_features': len(df.select_dtypes(include=['object', 'category']).columns),
         'has_missing_values': df.isnull().any().any(),
         'missing_percentage': (df.isnull().sum().sum() / (df.shape[0] * df.shape[1])) * 100,
-        'target_type': 'categorical' if df[target_column].dtype in ['object', 'category'] else 'numeric'
+        'target_type': 'categorical' if not pd.api.types.is_numeric_dtype(df[target_column]) else 'numeric'
     }
     
     # Target specific characteristics
@@ -418,7 +418,7 @@ def model_recommendation_page():
         })
     
     comparison_df = pd.DataFrame(model_comparison_data)
-    st.dataframe(comparison_df, use_container_width=True)
+    st.dataframe(comparison_df, width='stretch')
     
     # Visualization of recommendation scores
     # Convert to native Python types for Plotly
@@ -432,7 +432,7 @@ def model_recommendation_page():
         labels={'x': 'Model', 'y': 'Recommendation Score'}
     )
     fig.update_xaxes(tickangle=45)
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width='stretch')
     
     # Detailed model information
     st.markdown("### 📋 Detailed Model Information")

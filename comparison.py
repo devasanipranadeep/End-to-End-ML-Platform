@@ -250,6 +250,7 @@ def comparison_page():
     
     results = st.session_state.training_results
     problem_type = st.session_state.problem_type
+    model_names = list(results.keys())
     
     # Create leaderboard
     st.markdown("### 🥇 Model Leaderboard")
@@ -265,7 +266,7 @@ def comparison_page():
             return ['' for v in s]
     
     styled_leaderboard = leaderboard_df.style.apply(highlight_best, subset=leaderboard_df.columns[2:])
-    st.dataframe(styled_leaderboard, use_container_width=True)
+    st.dataframe(styled_leaderboard, width='stretch')
     
     # Best model summary
     best_model = leaderboard_df.iloc[0]
@@ -287,12 +288,12 @@ def comparison_page():
     
     # Metrics comparison
     fig_metrics = compare_model_performance(results, problem_type)
-    st.plotly_chart(fig_metrics, use_container_width=True)
+    st.plotly_chart(fig_metrics, width='stretch')
     
     # Radar chart
     st.markdown("### 🎯 Overall Performance Radar")
     fig_radar = create_radar_chart(results, problem_type)
-    st.plotly_chart(fig_radar, use_container_width=True)
+    st.plotly_chart(fig_radar, width='stretch')
     
     # Trade-off analysis
     st.markdown("### ⚖️ Performance Trade-offs")
@@ -301,9 +302,9 @@ def comparison_page():
     
     col1, col2 = st.columns(2)
     with col1:
-        st.plotly_chart(fig1, use_container_width=True)
+        st.plotly_chart(fig1, width='stretch')
     with col2:
-        st.plotly_chart(fig2, use_container_width=True)
+        st.plotly_chart(fig2, width='stretch')
     
     # Detailed comparison table
     st.markdown("### 📋 Detailed Comparison Table")
@@ -338,7 +339,7 @@ def comparison_page():
         detailed_data.append(row)
     
     detailed_df = pd.DataFrame(detailed_data)
-    st.dataframe(detailed_df, use_container_width=True)
+    st.dataframe(detailed_df, width='stretch')
     
     # Model recommendations based on use case
     st.markdown("### 💡 Model Recommendations by Use Case")
@@ -389,7 +390,7 @@ def comparison_page():
             title=f"{metric_name} Distribution Across Models",
             labels={'x': 'Model', 'y': metric_name}
         )
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width='stretch')
         
         # Statistical summary
         stats_data = []
@@ -403,7 +404,7 @@ def comparison_page():
             })
         
         stats_df = pd.DataFrame(stats_data)
-        st.dataframe(stats_df.round(4), use_container_width=True)
+        st.dataframe(stats_df.round(4), width='stretch')
     
     # Export comparison results
     st.markdown("### 📥 Export Comparison Results")

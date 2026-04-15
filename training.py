@@ -415,7 +415,7 @@ def training_page():
             results_data.append(row)
         
         results_df = pd.DataFrame(results_data)
-        st.dataframe(results_df, use_container_width=True)
+        st.dataframe(results_df, width='stretch')
         
         # Best model recommendation
         st.markdown("### 🏆 Best Model Recommendation")

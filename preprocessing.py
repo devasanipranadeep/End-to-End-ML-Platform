@@ -117,7 +117,7 @@ def handle_missing_values(df, strategy, columns=None):
     
     for col in columns:
         if df[col].isnull().sum() > 0:
-            if df[col].dtype in ['object', 'category']:
+            if not pd.api.types.is_numeric_dtype(df[col]):
                 if strategy == 'mode':
                     mode_val = df[col].mode()[0] if not df[col].mode().empty else 'Unknown'
                     df_processed[col] = df_processed[col].fillna(mode_val)
@@ -709,7 +709,7 @@ def preprocessing_page():
                 # Handle missing values
                 for col in df_clean.columns:
                     if df_clean[col].isnull().sum() > 0:
-                        if df_clean[col].dtype in ['object', 'category']:
+                        if not pd.api.types.is_numeric_dtype(df_clean[col]):
                             df_clean[col] = df_clean[col].fillna(df_clean[col].mode()[0] if not df_clean[col].mode().empty else 'Unknown')
                         else:
                             df_clean[col] = df_clean[col].fillna(df_clean[col].median())

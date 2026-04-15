@@ -192,7 +192,7 @@ def evaluation_page():
                     y_test, y_pred, target_names=class_names,
                     output_dict=True, zero_division=0
                 )
-                st.dataframe(pd.DataFrame(report).transpose().round(3), use_container_width=True)
+                st.dataframe(pd.DataFrame(report).transpose().round(3), width='stretch')
             except Exception as e:
                 st.warning(f"Could not generate classification report: {e}")
             
@@ -206,7 +206,7 @@ def evaluation_page():
                 if len(class_names) <= 20:
                     cm = confusion_matrix(y_test, y_pred)
                     fig = plot_confusion_matrix(cm, class_names, selected_model)
-                    st.plotly_chart(fig, use_container_width=True)
+                    st.plotly_chart(fig, width='stretch')
                 else:
                     st.info("Too many classes to display confusion matrix (>20).")
             except Exception as e:
@@ -223,7 +223,7 @@ def evaluation_page():
                     if hasattr(trained_pipeline, 'predict_proba'):
                         y_proba = trained_pipeline.predict_proba(X_test)[:, 1]
                         fig, roc_auc = plot_roc_curve(y_test, y_proba, selected_model)
-                        st.plotly_chart(fig, use_container_width=True)
+                        st.plotly_chart(fig, width='stretch')
                         st.metric("AUC Score", f"{roc_auc:.4f}")
                     else:
                         st.info("ROC curve requires predict_proba — not available for this model (e.g. SVM without probability=True).")
@@ -253,8 +253,8 @@ def evaluation_page():
                 orientation='h', title=f'Top 20 Feature Importance - {selected_model}'
             )
             fig.update_layout(yaxis={'categoryorder': 'total ascending'})
-            st.plotly_chart(fig, use_container_width=True)
-            st.dataframe(top_features, use_container_width=True)
+            st.plotly_chart(fig, width='stretch')
+            st.dataframe(top_features, width='stretch')
     
     else:  # Regression
         col1, col2, col3, col4 = st.columns(4)
@@ -279,7 +279,7 @@ def evaluation_page():
             st.markdown("### 📊 Residual Analysis")
             try:
                 fig = plot_residuals(y_test, y_pred, selected_model)
-                st.plotly_chart(fig, use_container_width=True)
+                st.plotly_chart(fig, width='stretch')
             except Exception as e:
                 st.warning(f"Could not generate residual plot: {e}")
             
@@ -299,7 +299,7 @@ def evaluation_page():
                     mode='lines', name='Perfect Prediction',
                     line=dict(color='red', dash='dash')
                 ))
-                st.plotly_chart(fig, use_container_width=True)
+                st.plotly_chart(fig, width='stretch')
             except Exception as e:
                 st.warning(f"Could not generate scatter plot: {e}")
             
@@ -315,7 +315,7 @@ def evaluation_page():
                 fig.add_trace(go.Histogram(x=errors, name='Error Distribution'), row=1, col=1)
                 fig.add_trace(go.Box(y=errors, name='Error Box Plot'), row=1, col=2)
                 fig.update_layout(title=f'Error Analysis - {selected_model}', showlegend=False)
-                st.plotly_chart(fig, use_container_width=True)
+                st.plotly_chart(fig, width='stretch')
             except Exception as e:
                 st.warning(f"Could not generate error distribution: {e}")
         else:
@@ -342,8 +342,8 @@ def evaluation_page():
                 orientation='h', title=f'Top 20 Feature Importance - {selected_model}'
             )
             fig.update_layout(yaxis={'categoryorder': 'total ascending'})
-            st.plotly_chart(fig, use_container_width=True)
-            st.dataframe(top_features, use_container_width=True)
+            st.plotly_chart(fig, width='stretch')
+            st.dataframe(top_features, width='stretch')
     
     # Model comparison table
     st.markdown("### 🏆 All Models Comparison")
@@ -358,7 +358,7 @@ def evaluation_page():
         comparison_data.append(row)
     
     comparison_df = pd.DataFrame(comparison_data)
-    st.dataframe(comparison_df, use_container_width=True)
+    st.dataframe(comparison_df, width='stretch')
     
     # Performance visualization
     st.markdown("### 📊 Performance Visualization")
@@ -390,7 +390,7 @@ def evaluation_page():
             barmode='group'
         )
         
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width='stretch')
         
     else:  # Regression
         # R² comparison
@@ -419,7 +419,7 @@ def evaluation_page():
             barmode='group'
         )
         
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width='stretch')
     
     # Export evaluation results
     st.markdown("### 📥 Export Evaluation Results")

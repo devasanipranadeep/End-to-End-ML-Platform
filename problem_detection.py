@@ -302,7 +302,7 @@ def problem_detection_page():
             showlegend=False
         ))
         
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width='stretch')
         
         # Pie chart for class distribution
         # Convert to native Python types for Plotly
@@ -314,7 +314,7 @@ def problem_detection_page():
             names=names,
             title=f'Class Distribution (Pie Chart) - {target_column}'
         )
-        st.plotly_chart(fig_pie, use_container_width=True)
+        st.plotly_chart(fig_pie, width='stretch')
         
         # Class balance analysis
         st.markdown("#### ⚖️ Class Balance Analysis")
@@ -366,7 +366,7 @@ def problem_detection_page():
         fig.add_vline(x=stats['median'], line_dash="dash", line_color="green", 
                      annotation_text=f"Median: {stats['median']:.2f}")
         
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width='stretch')
         
         # Box plot
         # Convert to native Python types for Plotly
@@ -376,7 +376,7 @@ def problem_detection_page():
             title=f'Box Plot of {target_column}',
             labels={'y': target_column}
         )
-        st.plotly_chart(fig_box, use_container_width=True)
+        st.plotly_chart(fig_box, width='stretch')
         
         # Distribution analysis
         st.markdown("#### 📊 Distribution Analysis")

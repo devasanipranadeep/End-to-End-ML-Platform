@@ -525,7 +525,7 @@ def advanced_page():
                                         title='Prediction Class Distribution',
                                         labels={'x': 'Class', 'y': 'Count'}
                                     )
-                                    st.plotly_chart(fig, use_container_width=True)
+                                    st.plotly_chart(fig, width='stretch')
                                     
                                     st.dataframe(pd.DataFrame({
                                         'Class': class_counts.index,
@@ -552,7 +552,7 @@ def advanced_page():
                                         title='Prediction Distribution',
                                         labels={'x': 'Predicted Value', 'y': 'Count'}
                                     )
-                                    st.plotly_chart(fig, use_container_width=True)
+                                    st.plotly_chart(fig, width='stretch')
                                 
                                 # Download predictions
                                 st.markdown("#### 💾 Download Predictions")

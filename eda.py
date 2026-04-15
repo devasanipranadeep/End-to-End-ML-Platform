@@ -118,7 +118,7 @@ def eda_page():
     # Convert to native Python types for Plotly
     dtype_df['Count'] = dtype_df['Count'].astype(int)
     fig = px.pie(dtype_df, values='Count', names='Data Type', title='Data Types Distribution', height=350)
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width='stretch')
     
     # Missing values analysis
     if summary['missing_values']:
@@ -136,7 +136,7 @@ def eda_page():
         fig = px.bar(missing_df, x='Column', y='Missing Percentage', 
                     title='Missing Values Percentage by Column',
                     labels={'Missing Percentage': 'Missing %'})
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width='stretch')
         
         st.dataframe(missing_df)
     else:
@@ -186,7 +186,7 @@ def eda_page():
                     title_text="Feature Distributions",
                     showlegend=False
                 )
-                st.plotly_chart(fig, use_container_width=True)
+                st.plotly_chart(fig, width='stretch')
     
     # Categorical features analysis
     if 'categorical_stats' in summary:
@@ -228,7 +228,7 @@ def eda_page():
                     height=350
                 )
                 fig.update_layout(xaxis_tickangle=45)
-                st.plotly_chart(fig, use_container_width=True)
+                st.plotly_chart(fig, width='stretch')
     
     # Correlation analysis
     st.markdown("### 🔗 Correlation Analysis")
@@ -247,7 +247,7 @@ def eda_page():
             color_continuous_scale='RdBu_r',
             height=500
         )
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width='stretch')
         
         # Strong correlations
         st.markdown("#### Strong Correlations (|r| > 0.7)")
@@ -285,7 +285,7 @@ def eda_page():
                 dimensions=numeric_cols[:min(5, len(numeric_cols))],  # Limit to 5 features
                 title="Pair Plot of Numerical Features"
             )
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width='stretch')
     
     # Target variable analysis (if specified)
     if st.session_state.target_column and st.session_state.target_column in df.columns:
@@ -302,7 +302,7 @@ def eda_page():
             st.metric("Missing Values", target_data.isnull().sum())
         
         # Target distribution
-        if target_data.dtype in ['object', 'category']:
+        if not pd.api.types.is_numeric_dtype(target_data):
             # Categorical target
             value_counts = target_data.value_counts()
             
@@ -316,7 +316,7 @@ def eda_page():
                 title=f'Distribution of {target_col}',
                 height=350
             )
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width='stretch')
             
             st.dataframe(pd.DataFrame({
                 'Value': value_counts.index,
@@ -334,7 +334,7 @@ def eda_page():
                 labels={'x': target_col, 'y': 'Frequency'},
                 height=350
             )
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width='stretch')
             
             # Statistics
             stats_df = pd.DataFrame(target_data.describe()).round(2)
@@ -370,7 +370,7 @@ def eda_page():
     # Target variable insights
     if st.session_state.target_column and st.session_state.target_column in df.columns:
         target_data = df[st.session_state.target_column]
-        if target_data.dtype in ['object', 'category']:
+        if not pd.api.types.is_numeric_dtype(target_data):
             if target_data.nunique() == 2:
                 insights.append("🎯 Binary classification problem detected")
             else:
