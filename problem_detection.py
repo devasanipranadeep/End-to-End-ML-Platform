@@ -29,7 +29,9 @@ def analyze_target_variable(df, target_column):
     }
     
     # Determine if it's classification or regression
-    if target_data.dtype in ['object', 'category', 'bool']:
+    # Check dtype.name to catch numpy bool_ ('bool'), pandas Categorical, and object types
+    dtype_name = target_data.dtype.name
+    if dtype_name in ('object', 'category', 'bool', 'boolean') or str(target_data.dtype) in ('object', 'bool'):
         # Categorical - Classification
         analysis['problem_type'] = 'Classification'
         analysis['classification_type'] = 'Binary' if target_data.nunique() == 2 else 'Multi-class'
@@ -45,21 +47,63 @@ def analyze_target_variable(df, target_column):
             analysis['class_balance'] = 'Balanced'
             analysis['imbalance_severity'] = 'None'
     
-    elif np.issubdtype(target_data.dtype, np.number):
-        # Numerical - could be classification or regression
-        unique_count = target_data.nunique()
-        total_count = len(target_data)
-        unique_ratio = unique_count / total_count
-        
-        # Heuristics to determine if it's actually classification
-        if unique_count <= 20 or unique_ratio < 0.05:
-            # Likely classification with numeric labels
+    else:
+        # Safely check if numeric (np.issubdtype can raise TypeError on some dtypes)
+        try:
+            is_numeric = np.issubdtype(target_data.dtype, np.number)
+        except (TypeError, AttributeError):
+            is_numeric = False
+
+        if is_numeric:
+            # Numerical - could be classification or regression
+            unique_count = target_data.nunique()
+            total_count = len(target_data)
+            unique_ratio = unique_count / total_count
+
+            # Heuristics to determine if it's actually classification
+            if unique_count <= 20 or unique_ratio < 0.05:
+                # Likely classification with numeric labels
+                analysis['problem_type'] = 'Classification'
+                analysis['classification_type'] = 'Binary' if target_data.nunique() == 2 else 'Multi-class'
+                analysis['classes'] = target_data.value_counts().to_dict()
+                analysis['class_distribution'] = (target_data.value_counts() / len(target_data) * 100).round(2).to_dict()
+                analysis['note'] = 'Numeric target detected but appears to be classification based on low unique value count'
+                # Check for class imbalance (same logic as categorical branch)
+                max_class_pct = max(analysis['class_distribution'].values())
+                if max_class_pct > 70:
+                    analysis['class_balance'] = 'Imbalanced'
+                    analysis['imbalance_severity'] = 'Severe' if max_class_pct > 85 else 'Moderate'
+                else:
+                    analysis['class_balance'] = 'Balanced'
+                    analysis['imbalance_severity'] = 'None'
+            else:
+                # Regression
+                analysis['problem_type'] = 'Regression'
+                analysis['statistics'] = {
+                    'mean': target_data.mean(),
+                    'median': target_data.median(),
+                    'std': target_data.std(),
+                    'min': target_data.min(),
+                    'max': target_data.max(),
+                    'range': target_data.max() - target_data.min(),
+                    'skewness': target_data.skew(),
+                    'kurtosis': target_data.kurtosis()
+                }
+
+                # Check distribution characteristics
+                skewness = analysis['statistics']['skewness']
+                if abs(skewness) > 1:
+                    analysis['distribution'] = 'Highly Skewed'
+                elif abs(skewness) > 0.5:
+                    analysis['distribution'] = 'Moderately Skewed'
+                else:
+                    analysis['distribution'] = 'Approximately Normal'
+        else:
+            # Fallback: treat any unrecognised dtype as classification
             analysis['problem_type'] = 'Classification'
             analysis['classification_type'] = 'Binary' if target_data.nunique() == 2 else 'Multi-class'
-            analysis['classes'] = target_data.value_counts().to_dict()
-            analysis['class_distribution'] = (target_data.value_counts() / len(target_data) * 100).round(2).to_dict()
-            analysis['note'] = 'Numeric target detected but appears to be classification based on low unique value count'
-            # Check for class imbalance (same logic as categorical branch)
+            analysis['classes'] = target_data.astype(str).value_counts().to_dict()
+            analysis['class_distribution'] = (target_data.astype(str).value_counts() / len(target_data) * 100).round(2).to_dict()
             max_class_pct = max(analysis['class_distribution'].values())
             if max_class_pct > 70:
                 analysis['class_balance'] = 'Imbalanced'
@@ -67,29 +111,7 @@ def analyze_target_variable(df, target_column):
             else:
                 analysis['class_balance'] = 'Balanced'
                 analysis['imbalance_severity'] = 'None'
-        else:
-            # Regression
-            analysis['problem_type'] = 'Regression'
-            analysis['statistics'] = {
-                'mean': target_data.mean(),
-                'median': target_data.median(),
-                'std': target_data.std(),
-                'min': target_data.min(),
-                'max': target_data.max(),
-                'range': target_data.max() - target_data.min(),
-                'skewness': target_data.skew(),
-                'kurtosis': target_data.kurtosis()
-            }
-            
-            # Check distribution characteristics
-            skewness = analysis['statistics']['skewness']
-            if abs(skewness) > 1:
-                analysis['distribution'] = 'Highly Skewed'
-            elif abs(skewness) > 0.5:
-                analysis['distribution'] = 'Moderately Skewed'
-            else:
-                analysis['distribution'] = 'Approximately Normal'
-    
+
     return analysis, None
 
 def recommend_problem_type(analysis):
