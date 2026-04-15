@@ -55,14 +55,8 @@ from scipy import stats
 
 # Database libraries
 import sqlite3
-try:
-    import mysql.connector
-except ImportError:
-    mysql = None
-try:
-    import psycopg2
-except ImportError:
-    psycopg2 = None
+# Database connectors removed for cloud deployment compatibility
+# mysql.connector and psycopg2-binary cause build issues on Streamlit Cloud
 
 # Set page config
 st.set_page_config(
