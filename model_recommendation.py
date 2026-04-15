@@ -560,42 +560,8 @@ def model_recommendation_page():
     st.session_state.model_recommendations = ranked_models
     
     # Navigation buttons
-    
-if characteristics['n_features'] > 50:
-    st.info("🔧 **High-Dimensional Data:**")
-    st.write("• Use regularization (Ridge/Lasso) or feature selection")
-    st.write("• Tree-based models handle high dimensions well")
-    
-# Quick start guide
-st.markdown("### 🚀 Quick Start Guide")
-    
-st.markdown("**Step 1:** Start with the top recommended model")
-st.markdown("**Step 2:** Train the model with default parameters")
-st.markdown("**Step 3:** Evaluate performance using appropriate metrics")
-st.markdown("**Step 4:** If needed, try other top models for comparison")
-st.markdown("**Step 5:** Fine-tune the best performing model")
-    
-# Select models for training
-st.markdown("### ✅ Select Models for Training")
-    
-selected_models_for_training = st.multiselect(
-    "Choose models to train in the next step:",
-    [model['name'] for model in ranked_models],
-    default=[ranked_models[0]['name']]  # Default to top recommendation
-)
-    
-if selected_models_for_training:
-    st.session_state.selected_models = selected_models_for_training
-    st.success(f"Selected {len(selected_models_for_training)} models for training")
-else:
-    st.info("Please select at least one model to proceed with training.")
-    
-# Save recommendations to session state
-st.session_state.model_recommendations = ranked_models
-    
-# Navigation buttons
-st.markdown("---")
-st.markdown("### 🧭 Navigation")
+    st.markdown("---")
+    st.markdown("### 🧭 Navigation")
     
 col1, col2, col3 = st.columns([1, 1, 1])
 with col1:
