@@ -25,19 +25,42 @@ def safe_display_dataframe(df):
     df_safe = df.copy()
     
     try:
-        # Convert problematic columns to compatible types
+        # Convert all columns to Arrow-compatible types
         for col in df_safe.columns:
-            if df_safe[col].dtype == 'object':
-                # Convert object columns to strings to avoid Arrow issues
+            dtype_str = str(df_safe[col].dtype)
+            
+            # Handle pandas StringDtype (the main culprit)
+            if 'string' in dtype_str.lower():
                 df_safe[col] = df_safe[col].astype(str)
-            elif hasattr(df_safe[col].dtype, 'name') and 'string' in str(df_safe[col].dtype).lower():
-                # Handle pandas StringDtype
+            
+            # Handle object dtype (mixed types)
+            elif df_safe[col].dtype == 'object':
+                # Check if it contains mixed types
+                try:
+                    # Try to convert to string first
+                    df_safe[col] = df_safe[col].astype(str)
+                except:
+                    # If that fails, convert each element individually
+                    df_safe[col] = df_safe[col].apply(lambda x: str(x) if pd.notna(x) else '')
+            
+            # Handle categorical data
+            elif 'category' in dtype_str:
                 df_safe[col] = df_safe[col].astype(str)
         
         return df_safe
-    except Exception:
+    except Exception as e:
         # If conversion fails, return original dataframe
+        # Streamlit will handle Arrow conversion automatically
         return df
+
+# Apply safe conversion to all dataframes before display
+def safe_st_dataframe(df, **kwargs):
+    """Wrapper for st.dataframe with Arrow compatibility"""
+    if df is not None and not df.empty:
+        df_safe = safe_display_dataframe(df)
+        return st.dataframe(df_safe, **kwargs)
+    else:
+        return st.dataframe(df, **kwargs)
 
 # ML Libraries
 from sklearn.model_selection import train_test_split, GridSearchCV, RandomizedSearchCV
