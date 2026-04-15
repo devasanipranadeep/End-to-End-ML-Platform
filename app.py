@@ -11,47 +11,33 @@ import os
 from datetime import datetime
 
 # Fix Arrow compatibility issues for Streamlit Cloud
-import pyarrow as pa
 import warnings
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 warnings.filterwarnings("ignore", category=UserWarning)
 
-# Monkey patch to handle StringDtype conversion issues
-original_from_pandas = pa.Table.from_pandas
-@staticmethod
-def safe_from_pandas(df, *args, **kwargs):
-    try:
-        return original_from_pandas(df, *args, **kwargs)
-    except (pa.lib.ArrowInvalid, TypeError, ValueError) as e:
-        # Convert problematic columns to object dtype
-        for col in df.columns:
-            if pd.api.types.is_string_dtype(df[col]) and hasattr(df[col], 'dtype') and str(df[col].dtype).startswith('string'):
-                df[col] = df[col].astype(str)
-            elif df[col].dtype == 'object':
-                df[col] = df[col].astype(str)
-        return original_from_pandas(df, *args, **kwargs)
-
-pa.Table.from_pandas = safe_from_pandas
-
 # Safe dataframe display function
 def safe_display_dataframe(df):
     """Safely display dataframe with Arrow compatibility"""
-    try:
+    if df is None:
         return df
-    except Exception as e:
-        # Create a copy and convert problematic columns
-        df_safe = df.copy()
+    
+    # Create a copy to avoid modifying original
+    df_safe = df.copy()
+    
+    try:
+        # Convert problematic columns to compatible types
         for col in df_safe.columns:
-            if pd.api.types.is_string_dtype(df_safe[col]) and hasattr(df_safe[col], 'dtype'):
-                if str(df_safe[col].dtype).startswith('string'):
-                    df_safe[col] = df_safe[col].astype(str)
-            elif df_safe[col].dtype == 'object':
-                try:
-                    # Try to convert to string if it contains mixed types
-                    df_safe[col] = df_safe[col].astype(str)
-                except:
-                    pass
+            if df_safe[col].dtype == 'object':
+                # Convert object columns to strings to avoid Arrow issues
+                df_safe[col] = df_safe[col].astype(str)
+            elif hasattr(df_safe[col].dtype, 'name') and 'string' in str(df_safe[col].dtype).lower():
+                # Handle pandas StringDtype
+                df_safe[col] = df_safe[col].astype(str)
+        
         return df_safe
+    except Exception:
+        # If conversion fails, return original dataframe
+        return df
 
 # ML Libraries
 from sklearn.model_selection import train_test_split, GridSearchCV, RandomizedSearchCV
