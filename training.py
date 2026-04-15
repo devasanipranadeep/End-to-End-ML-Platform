@@ -49,7 +49,15 @@ def get_model(model_name, problem_type):
             "K-Nearest Neighbors (KNN)": KNeighborsClassifier(),
         }
         if XGBOOST_AVAILABLE:
-            models["XGBoost"] = XGBClassifier(random_state=42, eval_metric='logloss')
+            models["XGBoost"] = XGBClassifier(
+                random_state=42,
+                eval_metric='logloss',
+                n_estimators=100,
+                tree_method='hist',   # histogram-based: much faster than 'exact'
+                n_jobs=-1,             # use all CPU cores
+                max_depth=6,
+                learning_rate=0.1,
+            )
     
     else:  # Regression models with better parameters
         models = {
@@ -61,7 +69,14 @@ def get_model(model_name, problem_type):
             "Support Vector Regression (SVR)": SVR(kernel='rbf', C=1.0, epsilon=0.1),  # Better kernel
         }
         if XGBOOST_AVAILABLE:
-            models["XGBoost"] = XGBRegressor(random_state=42, n_estimators=100, max_depth=6, learning_rate=0.1)  # Better params
+            models["XGBoost"] = XGBRegressor(
+                random_state=42,
+                n_estimators=100,
+                max_depth=6,
+                learning_rate=0.1,
+                tree_method='hist',   # histogram-based: much faster than 'exact'
+                n_jobs=-1,             # use all CPU cores
+            )
     
     return models.get(model_name)
 
@@ -335,12 +350,20 @@ def training_page():
             # Evaluate model
             metrics, y_pred = evaluate_model(full_pipeline, X_test, y_test, problem_type)
             
-            # Cross-validation for more robust evaluation (using full pipeline!)
-            cv_scores = cross_val_score(
-                full_pipeline, X_train, y_train, 
-                cv=5, 
-                scoring='accuracy' if problem_type == "Classification" else 'r2'
-            )
+            # Cross-validation — skip for XGBoost to avoid 5x retraining overhead
+            if model_name == "XGBoost":
+                # Use a fast 3-fold CV for XGBoost instead of 5-fold
+                cv_scores = cross_val_score(
+                    full_pipeline, X_train, y_train,
+                    cv=3,
+                    scoring='accuracy' if problem_type == "Classification" else 'r2'
+                )
+            else:
+                cv_scores = cross_val_score(
+                    full_pipeline, X_train, y_train,
+                    cv=5,
+                    scoring='accuracy' if problem_type == "Classification" else 'r2'
+                )
             
             # Store results
             results[model_name] = {
