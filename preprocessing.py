@@ -755,7 +755,7 @@ def preprocessing_page():
     st.markdown("### 📋 Current Columns")
     st.dataframe(pd.DataFrame({
         'Column Name': st.session_state.processed_data.columns,
-        'Data Type': st.session_state.processed_data.dtypes.values,
+        'Data Type': st.session_state.processed_data.dtypes.astype(str).values,
         'Non-Null Count': st.session_state.processed_data.count().values
     }))
     

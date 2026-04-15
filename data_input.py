@@ -172,7 +172,7 @@ def data_input_page():
                 st.markdown("### Column Information")
                 col_info = pd.DataFrame({
                     'Column Name': df.columns,
-                    'Data Type': df.dtypes.values,
+                    'Data Type': df.dtypes.astype(str).values,
                     'Non-Null Count': df.count().values,
                     'Unique Values': [df[col].nunique() for col in df.columns],
                     'Missing Values': df.isnull().sum().values
