@@ -765,21 +765,22 @@ def preprocessing_page():
     
     col1, col2, col3 = st.columns([1, 1, 1])
     with col1:
-        if st.button("⬅️ Previous: Data Input", type="secondary", key="nav_prev_data_input"):
+        if st.button("⬅️ Previous: Data Input", type="secondary", key="nav_prev_from_preprocessing"):
             st.session_state.explicit_navigation = "📊 Data Input"
             st.rerun()
     
     with col2:
-        if st.button("💾 Save Progress", type="primary", key="nav_save_progress"):
+        if st.button("💾 Save Progress", type="primary", key="nav_save_preprocessing"):
+            st.session_state.current_phase = "preprocessing"
             st.success("✅ Preprocessing progress saved!")
-            st.info("💡 Your processed data and steps have been saved to session.")
+            st.rerun()
     
     with col3:
-        if st.button("➡️ Next: EDA", type="primary", key="nav_next_eda"):
+        if st.button("➡️ Next: EDA", type="primary", key="nav_next_from_preprocessing"):
             if st.session_state.processed_data is not None:
                 st.session_state.current_phase = "eda"
                 st.success("✅ Preprocessing completed! Moving to Exploratory Data Analysis...")
                 st.session_state.explicit_navigation = "📈 Exploratory Data Analysis"
                 st.rerun()
             else:
-                st.error("⚠️ Please complete preprocessing first!")
+                st.error("⚠️ Please complete preprocessing steps first!")

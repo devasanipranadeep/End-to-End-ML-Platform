@@ -302,12 +302,11 @@ def data_input_page():
                 )
         
         with col3:
-            if st.button("➡️ Next: Preprocessing", type="primary"):
+            if st.button("➡️ Next: Preprocessing", type="primary", key="nav_next_preprocessing"):
                 if st.session_state.data is not None:
                     st.session_state.current_phase = "preprocessing"
                     st.success("✅ Data input completed! Moving to preprocessing...")
-                    # Use robust navigation system
-                    st.session_state.current_page = "🔧 Data Preprocessing"
+                    # Use consistent navigation system
                     st.session_state.explicit_navigation = "🔧 Data Preprocessing"
                     st.rerun()
                 else:

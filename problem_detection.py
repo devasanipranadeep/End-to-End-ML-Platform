@@ -486,17 +486,17 @@ def problem_detection_page():
     
     col1, col2, col3 = st.columns([1, 1, 1])
     with col1:
-        if st.button("⬅️ Previous: EDA", type="secondary"):
+        if st.button("⬅️ Previous: EDA", type="secondary", key="nav_prev_from_problem_detection"):
             st.session_state.explicit_navigation = "📈 Exploratory Data Analysis"
             st.rerun()
     
     with col2:
-        if st.button("💾 Save Progress", type="primary"):
+        if st.button("💾 Save Progress", type="primary", key="nav_save_problem_detection"):
             st.success("✅ Problem detection progress saved!")
             st.info("💡 Your target column and problem type have been saved to session.")
     
     with col3:
-        if st.button("➡️ Next: Model Recommendation", type="primary"):
+        if st.button("➡️ Next: Model Recommendation", type="primary", key="nav_next_from_problem_detection"):
             if st.session_state.target_column and st.session_state.problem_type:
                 st.session_state.current_phase = "model_recommendation"
                 st.success("✅ Problem detection completed! Moving to Model Recommendation...")

@@ -439,17 +439,17 @@ def eda_page():
     
     col1, col2, col3 = st.columns([1, 1, 1])
     with col1:
-        if st.button("⬅️ Previous: Preprocessing", type="secondary"):
+        if st.button("⬅️ Previous: Preprocessing", type="secondary", key="nav_prev_from_eda"):
             st.session_state.explicit_navigation = "🔧 Data Preprocessing"
             st.rerun()
     
     with col2:
-        if st.button("💾 Save Progress", type="primary"):
+        if st.button("💾 Save Progress", type="primary", key="nav_save_eda"):
             st.success("✅ EDA progress saved!")
             st.info("💡 Your exploratory analysis insights have been saved to session.")
     
     with col3:
-        if st.button("➡️ Next: Problem Detection", type="primary"):
+        if st.button("➡️ Next: Problem Detection", type="primary", key="nav_next_from_eda"):
             if st.session_state.data is not None:
                 st.session_state.current_phase = "problem_detection"
                 st.success("✅ EDA completed! Moving to Problem Type Detection...")
