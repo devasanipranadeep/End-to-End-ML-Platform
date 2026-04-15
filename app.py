@@ -10,7 +10,7 @@ import pickle
 import os
 from datetime import datetime
 
-# Fix Arrow compatibility issues for Streamlit Cloud
+# Fix compatibility issues for Streamlit Cloud
 import warnings
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 warnings.filterwarnings("ignore", category=UserWarning)
