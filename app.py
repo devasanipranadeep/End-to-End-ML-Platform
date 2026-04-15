@@ -193,18 +193,20 @@ page = st.session_state.current_page
 # Resolve current page index safely for sidebar
 _page_index = _pages.index(page) if page in _pages else 0
 
-# Sidebar selectbox - only for manual navigation
-current_selection = st.sidebar.selectbox(
+# Sidebar selectbox - uses on_change to avoid overriding button navigation
+def _on_sidebar_change():
+    st.session_state.current_page = st.session_state.sidebar_page_selectbox
+
+st.sidebar.selectbox(
     "Select a page",
     _pages,
     index=_page_index,
-    key="sidebar_page_selectbox"
+    key="sidebar_page_selectbox",
+    on_change=_on_sidebar_change
 )
 
-# Update current page from sidebar selection (only if different)
-if current_selection != st.session_state.current_page:
-    st.session_state.current_page = current_selection
-    page = current_selection
+# Always use current_page as the source of truth
+page = st.session_state.current_page
 
 # Debug navigation state (helpful for troubleshooting)
 if st.sidebar.checkbox("Show Navigation Debug", key="show_nav_debug"):
