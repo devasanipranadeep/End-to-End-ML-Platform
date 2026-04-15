@@ -582,30 +582,59 @@ def advanced_page():
                 
                 input_data = {}
                 for col in feature_columns:
-                    if col in st.session_state.data.columns:
-                        if st.session_state.data[col].dtype in ['object', 'category']:
-                            # Categorical feature
-                            input_data[col] = st.selectbox(f"{col}:", st.session_state.data[col].unique())
-                        else:
-                            # Numerical feature
-                            input_data[col] = st.number_input(
-                                f"{col}:", 
-                                value=float(st.session_state.data[col].mean()),
-                                format="%.4f"
-                            )
+                    if col not in st.session_state.data.columns:
+                        continue
+                    # Safely check for truly numeric columns (Arrow-backed strings can fool is_numeric_dtype)
+                    numeric_series = pd.to_numeric(st.session_state.data[col], errors='coerce')
+                    col_is_truly_numeric = numeric_series.notna().any() and pd.api.types.is_numeric_dtype(st.session_state.data[col])
+                    
+                    if not col_is_truly_numeric:
+                        # Categorical / string feature
+                        input_data[col] = st.selectbox(
+                            f"{col}:",
+                            st.session_state.data[col].dropna().unique(),
+                            key=f"adv_pred_sel_{col}"
+                        )
+                    else:
+                        # Numerical feature — safely compute mean
+                        try:
+                            mean_val = float(numeric_series.mean())
+                        except Exception:
+                            mean_val = 0.0
+                        input_data[col] = st.number_input(
+                            f"{col}:",
+                            value=mean_val,
+                            format="%.4f",
+                            key=f"adv_pred_num_{col}"
+                        )
                 
                 if st.button("Predict Single Value"):
                     try:
-                        # Create input dataframe
-                        input_df = pd.DataFrame([input_data])
+                        # Create input dataframe ordered to match training columns
+                        training_columns = model_result.get('feature_columns', feature_columns)
+                        input_df = pd.DataFrame([{c: input_data[c] for c in training_columns if c in input_data}])
                         
-                        # Simulate prediction
+                        # Cast types: categorical → object, numerical → numeric
+                        stored_categorical = model_result.get('categorical_columns', [])
+                        for col in input_df.columns:
+                            if col in stored_categorical:
+                                input_df[col] = input_df[col].astype('object')
+                            else:
+                                input_df[col] = pd.to_numeric(input_df[col], errors='coerce')
+                        
+                        # Use the real trained pipeline
+                        trained_pipeline = model_result['model']
+                        label_encoder = model_result.get('label_encoder')
+                        prediction = trained_pipeline.predict(input_df)[0]
+                        
+                        # Decode label if classification
+                        if problem_type == "Classification" and label_encoder is not None:
+                            prediction = label_encoder.inverse_transform([int(prediction)])[0]
+                        
                         if problem_type == "Classification":
-                            prediction = np.random.randint(0, 3)  # Random class
-                            st.success(f"🎯 Predicted Class: {prediction}")
+                            st.success(f"🎯 Predicted Class: **{prediction}**")
                         else:
-                            prediction = np.random.normal(100, 20)  # Random value
-                            st.success(f"🎯 Predicted Value: {prediction:.4f}")
+                            st.success(f"🎯 Predicted Value: **{float(prediction):.4f}**")
                         
                     except Exception as e:
                         st.error(f"Error making prediction: {str(e)}")

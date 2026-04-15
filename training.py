@@ -89,7 +89,7 @@ def prepare_data(df, target_column, problem_type):
     st.write("🎯 **Target Variable Analysis:**")
     col1, col2 = st.columns(2)
     with col1:
-        if y.dtype in ['object', 'category']:
+        if not pd.api.types.is_numeric_dtype(y):
             st.metric("Target Type", "Categorical")
             st.metric("Unique Values", y.nunique())
         else:
@@ -97,7 +97,7 @@ def prepare_data(df, target_column, problem_type):
             st.metric("Min Value", f"{y.min():.2f}")
             st.metric("Max Value", f"{y.max():.2f}")
     with col2:
-        if y.dtype in ['object', 'category']:
+        if not pd.api.types.is_numeric_dtype(y):
             st.warning("⚠️ Categorical target detected! Consider classification models.")
         else:
             # Check if target has outliers or is skewed
@@ -133,7 +133,7 @@ def prepare_data(df, target_column, problem_type):
     )
     
     # Encode target if it's categorical
-    if problem_type == "Classification" and y.dtype in ['object', 'category']:
+    if problem_type == "Classification" and not pd.api.types.is_numeric_dtype(y):
         label_encoder = LabelEncoder()
         y_encoded = label_encoder.fit_transform(y)
         return X, y_encoded, preprocessor, label_encoder, categorical_columns, numerical_columns
@@ -525,12 +525,21 @@ def training_page():
             # Create input fields for each feature
             input_data = {}
             for col in X.columns:
-                if X[col].dtype in ['object', 'category']:
-                    # Categorical feature
-                    input_data[col] = st.selectbox(f"{col}:", X[col].unique())
+                # Use pd.to_numeric to safely check if column is truly numeric
+                # (Arrow-backed string columns can pass is_numeric_dtype but fail on .mean())
+                numeric_series = pd.to_numeric(X[col], errors='coerce')
+                col_is_truly_numeric = numeric_series.notna().any() and pd.api.types.is_numeric_dtype(X[col])
+                
+                if not col_is_truly_numeric:
+                    # Categorical / string feature
+                    input_data[col] = st.selectbox(f"{col}:", X[col].dropna().unique(), key=f"pred_sel_{col}")
                 else:
-                    # Numerical feature
-                    input_data[col] = st.number_input(f"{col}:", value=float(X[col].mean()))
+                    # Numerical feature — safely compute mean via coerced numeric series
+                    try:
+                        mean_val = float(numeric_series.mean())
+                    except Exception:
+                        mean_val = 0.0
+                    input_data[col] = st.number_input(f"{col}:", value=mean_val, key=f"pred_num_{col}")
             
             # Make prediction
             if st.button("Make Prediction"):
