@@ -1,0 +1,21 @@
+# Full requirements with database support
+# Use this for self-hosted deployment or platforms with system dependencies
+
+streamlit==1.27.2
+pandas==2.0.3
+numpy==1.24.4
+matplotlib==3.7.5
+seaborn==0.12.2
+plotly==5.15.0
+scikit-learn==1.3.2
+scipy==1.11.4
+openpyxl==3.1.2
+xlrd==2.0.1
+xgboost==1.7.6
+joblib==1.3.2
+
+# Database connectors (uncomment as needed)
+# psycopg2-cffi==2.9.2  # PostgreSQL - Pure Python
+# PyMySQL==1.1.0        # MySQL - Pure Python  
+# pymongo==4.6.0        # MongoDB - Pure Python
+# redis==5.0.1          # Redis - Pure Python

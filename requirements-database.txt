@@ -1,0 +1,20 @@
+# Optional database dependencies for local/self-hosted deployment
+# Uncomment and add to requirements.txt if deploying on platforms with system access
+
+# PostgreSQL (alternative to psycopg2-binary)
+# psycopg2-cffi==2.9.2  # Pure Python implementation
+
+# MySQL (alternative to mysql-connector-python)
+# PyMySQL==1.1.0        # Pure Python implementation
+
+# SQL Server
+# pyodbc==5.0.1        # May need system ODBC drivers
+
+# Oracle
+# cx_Oracle==8.3.0      # Requires Oracle client
+
+# MongoDB
+# pymongo==4.6.0        # Pure Python, should work
+
+# Redis
+# redis==5.0.1          # Pure Python, should work

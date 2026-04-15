@@ -55,8 +55,39 @@ from scipy import stats
 
 # Database libraries
 import sqlite3
-# Database connectors removed for cloud deployment compatibility
-# mysql.connector and psycopg2-binary cause build issues on Streamlit Cloud
+
+# Optional database connectors (commented out for cloud compatibility)
+# Uncomment these if deploying on platforms with system dependencies or use pure Python alternatives
+
+# PostgreSQL options:
+# try:
+#     import psycopg2  # Original (requires system libraries)
+# except ImportError:
+#     psycopg2 = None
+# try:
+#     import psycopg2cffi  # Pure Python alternative
+# except ImportError:
+#     psycopg2cffi = None
+
+# MySQL options:
+# try:
+#     import mysql.connector  # Original (requires system libraries)
+# except ImportError:
+#     mysql = None
+# try:
+#     import pymysql  # Pure Python alternative
+# except ImportError:
+#     pymysql = None
+
+# Other databases:
+# try:
+#     import pymongo  # MongoDB (pure Python)
+# except ImportError:
+#     pymongo = None
+# try:
+#     import redis  # Redis (pure Python)
+# except ImportError:
+#     redis = None
 
 # Set page config
 st.set_page_config(
