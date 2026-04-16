@@ -11,7 +11,7 @@ from sklearn.model_selection import cross_val_score
 import warnings
 warnings.filterwarnings('ignore')
 
-def get_dataset_characteristics(df, target_column):
+def get_dataset_characteristics(df, target_column, problem_type=None):
     """Analyze dataset characteristics for model recommendation"""
     characteristics = {
         'n_samples': len(df),
@@ -22,17 +22,27 @@ def get_dataset_characteristics(df, target_column):
         'missing_percentage': (df.isnull().sum().sum() / (df.shape[0] * df.shape[1])) * 100,
         'target_type': 'categorical' if not pd.api.types.is_numeric_dtype(df[target_column]) else 'numeric'
     }
-    
+
     # Target specific characteristics
     target_data = df[target_column].dropna()
-    if characteristics['target_type'] == 'categorical':
-        characteristics['n_classes'] = target_data.nunique()
+
+    # Use problem_type from session state as the source of truth when provided
+    is_classification = (problem_type == "Classification") or (characteristics['target_type'] == 'categorical')
+
+    if is_classification:
+        # Always populate classification fields; works for both string and numeric class labels
+        characteristics['n_classes'] = int(target_data.nunique())
         characteristics['is_binary'] = target_data.nunique() == 2
-        characteristics['class_balance'] = target_data.value_counts().min() / target_data.value_counts().max()
+        vc = target_data.value_counts()
+        characteristics['class_balance'] = float(vc.min() / vc.max())
+        # Provide neutral placeholder values so regression display code doesn't KeyError
+        characteristics['target_range'] = None
+        characteristics['target_std'] = None
     else:
+        # Regression path — target must be numeric here
         characteristics['target_range'] = float(target_data.max() - target_data.min())
         characteristics['target_std'] = float(target_data.std())
-        # Numeric target that is actually Classification (e.g. 0/1 labels)
+        # Numeric target that might actually be classification (e.g. 0/1 labels)
         unique_count = target_data.nunique()
         unique_ratio = unique_count / len(target_data)
         if unique_count <= 20 or unique_ratio < 0.05:
@@ -40,7 +50,7 @@ def get_dataset_characteristics(df, target_column):
             characteristics['is_binary'] = unique_count == 2
             vc = target_data.value_counts()
             characteristics['class_balance'] = float(vc.min() / vc.max())
-    
+
     return characteristics
 
 def recommend_classification_models(characteristics):
@@ -370,7 +380,7 @@ def model_recommendation_page():
     
     # Analyze dataset characteristics
     st.markdown("### 📊 Dataset Analysis")
-    characteristics = get_dataset_characteristics(df, target_column)
+    characteristics = get_dataset_characteristics(df, target_column, problem_type)
     
     # Display dataset characteristics
     col1, col2, col3, col4 = st.columns(4)
